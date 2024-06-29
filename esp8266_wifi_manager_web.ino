@@ -7,6 +7,8 @@
 
 std::unique_ptr<ESP8266WebServer> server;
 
+const int flashButtonPin = 0;
+
 void handleRoot() {
   server->send(200, "text/plain", "hello from esp8266!");
 }
@@ -68,6 +70,14 @@ void setup() {
       server->on("/inline", []() {
         server->send(200, "text/plain", "this works as well");
       });
+
+      server->on("/reset", []() {
+        Serial.println("WiFi settings reset");
+        server->send(200, "text/plain", "WiFi settings reset, reconnect wifi");
+        WiFiManager wifiManager;
+        wifiManager.resetSettings();
+        ESP.reset();
+      });
     
       server->onNotFound(handleNotFound);
     
@@ -81,5 +91,13 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
+  if (digitalRead(flashButtonPin) == LOW) {
+    WiFiManager wm;
+    wm.resetSettings();
+    ESP.reset();
+    Serial.println("WiFi settings reset");
+    delay(1000); 
+  }
+  
   server->handleClient();
 }
